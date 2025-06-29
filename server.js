@@ -11,23 +11,30 @@ app.use(express.json());
 
 app.post('/login', async (req, res) => {
   try {
-    const form = new FormData();
-    form.append('username', 'sesile2');
-    form.append('password', '9cc0c90d6');
+    const formData = new URLSearchParams();
+    formData.append('username', 'sesile2');
+    formData.append('password', '9cc0c90d6');
 
-    const response = await axios.post(
-      'https://cp.rfbanana.ru/gamecp_login.php',
-      form,
-      {
-        headers: form.getHeaders(),
-        withCredentials: true,
-      }
-    );
+    const response = await axios.post('https://cp.rfbanana.ru/gamecp_login.php', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: 'PHPSESSID=...; gamecp_userdata=...', // якщо потрібно
+      },
+    });
 
-    res.send(response.data);
-  } catch (error) {
-    console.error('Login failed:', error.message);
-    res.status(500).send('Login failed');
+    console.log('✅ ВІДПОВІДЬ ВІД rfbanana.ru');
+    console.log('Status:', response.status);
+    console.log('Headers:', response.headers);
+    console.log('Body:', response.data); // <-- це HTML або текст
+
+    res.send(response.data); // передай це клієнту
+  } catch (err) {
+    console.error('❌ ПОМИЛКА при логіні:', err.message);
+    if (err.response) {
+      console.error('Status:', err.response.status);
+      console.error('Body:', err.response.data);
+    }
+    res.status(500).send('Помилка логіну');
   }
 });
 
