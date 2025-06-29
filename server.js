@@ -1,41 +1,36 @@
-import express from 'express';
-import axios from 'axios';
-import FormData from 'form-data';
-import { CookieJar } from 'tough-cookie';
-import { wrapper } from 'axios-cookiejar-support';
-import cors from 'cors';
+import express from "express";
+import axios from "axios";
+import { wrapper } from "axios-cookiejar-support";
+import { CookieJar } from "tough-cookie";
 
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-const jar = new CookieJar();
-const client = wrapper(axios.create({ jar }));
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
 
-app.post('/login', async (req, res) => {
+  const cookieJar = new CookieJar();
+  const client = wrapper(axios.create({ jar: cookieJar, withCredentials: true }));
+
   try {
-    const initResponse = await client.get('https://cp.rfbanana.ru/gamecp_login.php');
+    const response = await client.post(
+      "https://cp.rfbanana.ru/gamecp_login.php",
+      new URLSearchParams({ username, password }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0"
+        }
+      }
+    );
 
-    const cookies = await jar.getCookies('https://cp.rfbanana.ru');
-    console.log('🍪 Cookies:', cookies.map(c => c.cookieString()).join('; '));
-
-    const form = new FormData();
-    form.append('username', 'sesile2');
-    form.append('password', '9cc0c90d6');
-
-    const loginResponse = await client.post('https://cp.rfbanana.ru/gamecp_login.php', form, {
-      headers: form.getHeaders(),
-    });
-
-    res.send(loginResponse.data);
-
+    res.send(response.data);
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Login failed');
+    console.error("Login error:", err);
+    res.status(500).send("Login failed");
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server listening on port ${PORT}`);
+app.listen(3000, () => {
+  console.log("Server is running on http://localhost:3000");
 });
