@@ -26,7 +26,7 @@ app.post('/login', async (req, res) => {
 
     console.log('Status:', response.status);
     console.log('Headers:', response.headers);
-    console.log('Body Start:', response.data.slice(0, 200));
+    console.log('Body Start:', response.data);
 
     res.send(response.data);
   } catch (err) {
